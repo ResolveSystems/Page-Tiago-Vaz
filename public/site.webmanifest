@@ -1,0 +1,12 @@
+{
+  "name": "Tiago Vaz — Inteligência Empresarial",
+  "short_name": "Tiago Vaz",
+  "description": "Transformando dados em decisões. Transformando decisões em crescimento previsível.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0E1215",
+  "theme_color": "#0E1215",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}

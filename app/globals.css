@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 14 18 21; /* #0E1215 */
+  --background-soft: 23 27 30; /* #171B1E */
+  --background-softer: 29 34 38; /* #1D2226 */
+  --card: 20 24 27; /* #14181B */
+  --foreground: 240 236 235; /* #F0ECEB */
+  --primary: 171 139 83; /* #AB8B53 */
+  --primary-bright: 210 173 117; /* #D2AD75 */
+  --primary-foreground: 14 18 21; /* texto sobre o dourado */
+  --border: 240 236 235; /* usado sempre com opacidade baixa via /10 etc. */
+}
+
+.light {
+  --background: 245 241 238; /* #F5F1EE */
+  --background-soft: 234 227 222; /* #EAE3DE */
+  --background-softer: 222 213 206; /* #DED5CE */
+  --card: 255 255 255;
+  --foreground: 23 19 16; /* #171310 */
+  --primary: 124 90 46; /* #7C5A2E */
+  --primary-bright: 99 67 31; /* #63431F */
+  --primary-foreground: 245 241 238;
+  --border: 23 19 16;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

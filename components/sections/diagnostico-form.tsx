@@ -1,0 +1,229 @@
+"use client";
+
+import { useState, useRef, FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { diagnosticoSchema } from "@/lib/validation";
+
+type FormState = {
+  nome: string;
+  empresa: string;
+  segmento: string;
+  whatsapp: string;
+  email: string;
+  funcionarios: string;
+  desafio: string;
+  objetivo: string;
+  website: string; // honeypot
+};
+
+const INITIAL_STATE: FormState = {
+  nome: "",
+  empresa: "",
+  segmento: "",
+  whatsapp: "",
+  email: "",
+  funcionarios: "1 a 5",
+  desafio: "",
+  objetivo: "",
+  website: "",
+};
+
+export function DiagnosticoForm() {
+  const [data, setData] = useState<FormState>(INITIAL_STATE);
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const mountedAt = useRef(Date.now()); // usado para detectar envio "rápido demais" (bot)
+
+  function update<K extends keyof FormState>(key: K, value: string) {
+    setData((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setGlobalError(null);
+
+    // Proteção simples: formulários preenchidos e enviados em menos de 2s
+    // quase sempre são bots preenchendo via script, não humanos.
+    if (Date.now() - mountedAt.current < 2000) {
+      setGlobalError("Por favor, revise os campos antes de enviar.");
+      return;
+    }
+
+    const parsed = diagnosticoSchema.safeParse(data);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof FormState, string>> = {};
+      for (const [key, messages] of Object.entries(parsed.error.flatten().fieldErrors)) {
+        fieldErrors[key as keyof FormState] = messages?.[0];
+      }
+      setErrors(fieldErrors);
+      setGlobalError("Por favor, corrija os campos destacados antes de continuar.");
+      const firstKey = Object.keys(fieldErrors)[0];
+      if (firstKey) document.getElementById(firstKey)?.focus();
+      return;
+    }
+
+    setStatus("submitting");
+    try {
+      const res = await fetch("/api/diagnostico", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        setStatus("error");
+        setGlobalError(
+          payload?.error ?? "Não foi possível enviar agora. Tente novamente em instantes."
+        );
+        return;
+      }
+      setStatus("success");
+    } catch {
+      setStatus("error");
+      setGlobalError("Não foi possível enviar agora. Verifique sua conexão e tente novamente.");
+    }
+  }
+
+  if (status === "success") {
+    const firstName = data.nome.trim().split(" ")[0] || data.nome;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-md border border-primary/30 p-10 text-center sm:p-16"
+      >
+        <h3 className="mb-4 font-display text-2xl">Obrigado, {firstName}.</h3>
+        <p className="mx-auto max-w-[480px] text-foreground/65">
+          Recebi seu pedido de Diagnóstico Estratégico para a <strong className="text-foreground">{data.empresa}</strong>.
+          Vou analisar com calma o desafio comercial que você compartilhou e retorno em breve pelo WhatsApp
+          ou e-mail informado para alinharmos os próximos passos.
+        </p>
+        <p className="mt-6 font-display text-lg italic text-primary">
+          Transformando dados em decisões. Transformando decisões em crescimento previsível.
+        </p>
+      </motion.div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate className="mt-11 grid grid-cols-1 gap-[18px] sm:grid-cols-2">
+      {/* Honeypot — invisível para humanos, armadilha para bots */}
+      <div className="absolute -left-[9999px]" aria-hidden="true">
+        <label htmlFor="website">Não preencha este campo</label>
+        <input
+          id="website"
+          name="website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={data.website}
+          onChange={(e) => update("website", e.target.value)}
+        />
+      </div>
+
+      <AnimatePresence>
+        {globalError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="col-span-full rounded-md border border-red-400/30 bg-red-400/10 px-4 py-3 text-left text-[0.85rem] text-red-300"
+          >
+            {globalError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div>
+        <Label htmlFor="nome">Nome</Label>
+        <Input id="nome" invalid={!!errors.nome} value={data.nome} onChange={(e) => update("nome", e.target.value)} />
+        {errors.nome && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.nome}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="empresa">Empresa</Label>
+        <Input id="empresa" invalid={!!errors.empresa} value={data.empresa} onChange={(e) => update("empresa", e.target.value)} />
+        {errors.empresa && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.empresa}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="segmento">Segmento</Label>
+        <Input id="segmento" invalid={!!errors.segmento} value={data.segmento} onChange={(e) => update("segmento", e.target.value)} />
+        {errors.segmento && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.segmento}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="whatsapp">WhatsApp</Label>
+        <Input
+          id="whatsapp"
+          type="tel"
+          placeholder="(51) 99999-9999"
+          invalid={!!errors.whatsapp}
+          value={data.whatsapp}
+          onChange={(e) => update("whatsapp", e.target.value)}
+        />
+        {errors.whatsapp && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.whatsapp}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="email">E-mail</Label>
+        <Input
+          id="email"
+          type="email"
+          invalid={!!errors.email}
+          value={data.email}
+          onChange={(e) => update("email", e.target.value)}
+        />
+        {errors.email && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.email}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="funcionarios">Número de funcionários</Label>
+        <Select value={data.funcionarios} onValueChange={(v) => update("funcionarios", v)}>
+          <SelectTrigger id="funcionarios">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["1 a 5", "6 a 20", "21 a 50", "51 a 200", "+200"].map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="sm:col-span-2">
+        <Label htmlFor="desafio">Principal desafio comercial hoje</Label>
+        <Textarea
+          id="desafio"
+          invalid={!!errors.desafio}
+          value={data.desafio}
+          onChange={(e) => update("desafio", e.target.value)}
+        />
+        {errors.desafio && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.desafio}</p>}
+      </div>
+
+      <div className="sm:col-span-2">
+        <Label htmlFor="objetivo">Objetivo com o diagnóstico</Label>
+        <Textarea id="objetivo" value={data.objetivo} onChange={(e) => update("objetivo", e.target.value)} />
+      </div>
+
+      <div className="sm:col-span-2 mt-2.5">
+        <Button type="submit" disabled={status === "submitting"}>
+          {status === "submitting" ? "Enviando..." : "Agendar Diagnóstico Estratégico"}
+        </Button>
+        <p className="mt-2 text-[0.8rem] text-foreground/40">
+          Seus dados são usados apenas para retorno do diagnóstico.
+        </p>
+      </div>
+    </form>
+  );
+}
