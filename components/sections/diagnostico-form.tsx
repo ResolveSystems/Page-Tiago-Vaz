@@ -38,7 +38,7 @@ const INITIAL_STATE: FormState = {
 export function DiagnosticoForm() {
   const [data, setData] = useState<FormState>(INITIAL_STATE);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [globalError, setGlobalError] = useState<string | null>(null);
   const mountedAt = useRef(Date.now()); // usado para detectar envio "rápido demais" (bot)
 
@@ -51,13 +51,16 @@ export function DiagnosticoForm() {
     e.preventDefault();
     setGlobalError(null);
 
-    // Proteção simples: formulários preenchidos e enviados em menos de 2s
-    // quase sempre são bots preenchendo via script, não humanos.
+    // Proteção simples contra bots: envio feito rápido demais para ser humano.
+    // Não denunciamos a suspeita — mostramos a mesma tela de sucesso e simplesmente
+    // não fazemos a requisição de verdade (mesmo princípio do honeypot).
     if (Date.now() - mountedAt.current < 2000) {
-      setGlobalError("Por favor, revise os campos antes de enviar.");
+      setStatus("success");
       return;
     }
 
+    // Validação de campos (ajuda a pessoa a corrigir a própria digitação —
+    // isso continua aparecendo, é diferente de um erro de sistema/envio).
     const parsed = diagnosticoSchema.safeParse(data);
     if (!parsed.success) {
       const fieldErrors: Partial<Record<keyof FormState, string>> = {};
@@ -71,6 +74,11 @@ export function DiagnosticoForm() {
       return;
     }
 
+    // A partir daqui, os dados já são válidos. Não importa o que acontecer na
+    // requisição (falha de rede, servidor fora do ar, CSV não configurado etc.),
+    // a pessoa sempre vê a confirmação de sucesso — nunca um erro de sistema.
+    // Falhas reais ficam só no console, para você conseguir investigar depois;
+    // o lead nunca fica sabendo que algo deu errado nos bastidores.
     setStatus("submitting");
     try {
       const res = await fetch("/api/diagnostico", {
@@ -78,18 +86,14 @@ export function DiagnosticoForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      const payload = await res.json().catch(() => null);
       if (!res.ok) {
-        setStatus("error");
-        setGlobalError(
-          payload?.error ?? "Não foi possível enviar agora. Tente novamente em instantes."
-        );
-        return;
+        const payload = await res.json().catch(() => null);
+        console.error("[diagnostico] envio retornou erro, mas exibindo sucesso ao usuário:", payload);
       }
+    } catch (err) {
+      console.error("[diagnostico] falha de rede, mas exibindo sucesso ao usuário:", err);
+    } finally {
       setStatus("success");
-    } catch {
-      setStatus("error");
-      setGlobalError("Não foi possível enviar agora. Verifique sua conexão e tente novamente.");
     }
   }
 
