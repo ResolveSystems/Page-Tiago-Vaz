@@ -44,6 +44,21 @@ cair numa instância diferente, sem enxergar o arquivo escrito por outra. Se for
 hospedar na Vercel, troque `lib/csv-storage.ts` por um banco de dados (Postgres,
 Supabase, Google Sheets via API etc.) antes de ir pra produção.
 
+## Card de compartilhamento (WhatsApp / redes sociais)
+
+Quando o link do site é colado no WhatsApp (ou compartilhado no LinkedIn, Facebook etc.), o
+preview que aparece vem das tags Open Graph em `app/layout.tsx`, que apontam para
+`public/images/og-cover.jpg` — um card de 1200×630 desenhado especificamente para isso: sua
+foto à direita, o gancho "Empresas não crescem com mais marketing. Crescem aprendendo." em
+destaque, a frase-guia da marca como subtexto, e uma chamada para o Diagnóstico Estratégico.
+
+- **Testar antes de divulgar**: o WhatsApp cacheia o preview por URL. Se você trocar a imagem
+  depois, o link já compartilhado antes pode continuar mostrando o card antigo por um tempo.
+  Para forçar a atualização, use o [Sharing Debugger do Meta](https://developers.facebook.com/tools/debug/)
+  (o WhatsApp usa a mesma base de cache do Facebook/Instagram).
+- Se quiser um card novo (outra foto, outro texto), é só pedir — ele foi desenhado sob medida,
+  não é gerado automaticamente pelo projeto.
+
 ## Google Tag Manager
 
 Usa o pacote oficial `@next/third-parties` (mantido pela própria equipe do Next.js) em vez de

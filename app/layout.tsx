@@ -65,7 +65,15 @@ export const metadata: Metadata = {
     siteName: "Tiago Vaz",
     title: "Tiago Vaz — Inteligência Empresarial e Crescimento Previsível",
     description: "Transformando dados em decisões. Transformando decisões em crescimento previsível.",
-    images: [{ url: "/images/og-cover.jpg", width: 1200, height: 630, alt: "Tiago Vaz" }],
+    images: [
+      {
+        url: "/images/og-cover.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Tiago Vaz — Transformando dados em decisões, decisões em crescimento previsível",
+        type: "image/jpeg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
