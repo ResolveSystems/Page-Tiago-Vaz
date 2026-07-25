@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { GoogleTagManager } from "@next/third-parties/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -28,6 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const SITE_URL = "https://tiagovaz.com.br";
+const GTM_ID = "GTM-MM6JQFVK";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -172,6 +174,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-body antialiased">
+        <GoogleTagManager gtmId={GTM_ID} />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

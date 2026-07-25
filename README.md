@@ -44,6 +44,25 @@ cair numa instância diferente, sem enxergar o arquivo escrito por outra. Se for
 hospedar na Vercel, troque `lib/csv-storage.ts` por um banco de dados (Postgres,
 Supabase, Google Sheets via API etc.) antes de ir pra produção.
 
+## Google Tag Manager
+
+Usa o pacote oficial `@next/third-parties` (mantido pela própria equipe do Next.js) em vez de
+colar o script manualmente — ele injeta o script e o `<noscript>` de fallback nos lugares certos
+automaticamente, evitando problemas de hidratação. Configurado em `app/layout.tsx`:
+
+```tsx
+import { GoogleTagManager } from "@next/third-parties/google";
+// ...
+<GoogleTagManager gtmId="GTM-MM6JQFVK" />
+```
+
+Se precisar trocar o container do GTM, o ID está na constante `GTM_ID` no topo de `app/layout.tsx`.
+
+A CSP (`next.config.js`) já libera `googletagmanager.com` e `google-analytics.com` em
+`script-src`, `img-src`, `connect-src` e `frame-src` — se dentro do seu container GTM você
+configurar outras tags (Meta Pixel, LinkedIn Insight, etc.), vai precisar liberar os domínios
+delas na CSP também, ou elas serão bloqueadas silenciosamente pelo navegador.
+
 ## Segurança do formulário
 
 O endpoint `/api/diagnostico` aplica, em camadas:
@@ -113,6 +132,8 @@ data/                          → criado automaticamente no primeiro envio (lea
 - [ ] Rodar `npm install` antes do primeiro `npm run dev`/`build`.
 - [ ] Trocar domínio placeholder `tiagovaz.com.br` se for diferente do real.
 - [ ] Gerar `/images/og-cover.jpg` definitivo (1200×630).
-- [ ] Depoimentos da seção "Provas" são fictícios — substitua por reais quando disponíveis.
+- [ ] Seção de depoimentos ("Provas") foi removida até você ter depoimentos reais — o componente
+      `components/sections/provas.tsx` foi apagado; quando tiver depoimentos verdadeiros, é só
+      recriar a seção e voltar a importá-la em `app/page.tsx`.
 - [ ] Se for hospedar na Vercel (ou outro serverless), trocar `lib/csv-storage.ts` por um banco
       de dados antes de ir pra produção (ver aviso acima).

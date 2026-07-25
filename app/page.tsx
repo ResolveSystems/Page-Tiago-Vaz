@@ -13,7 +13,6 @@ const ComoFunciona = dynamic(() => import("@/components/sections/como-funciona")
 const Solucoes = dynamic(() => import("@/components/sections/solucoes").then((m) => m.Solucoes));
 const CasoReal = dynamic(() => import("@/components/sections/caso-real").then((m) => m.CasoReal));
 const Beneficios = dynamic(() => import("@/components/sections/beneficios").then((m) => m.Beneficios));
-const Provas = dynamic(() => import("@/components/sections/provas").then((m) => m.Provas));
 const Faq = dynamic(() => import("@/components/sections/faq").then((m) => m.Faq));
 const CtaFinal = dynamic(() => import("@/components/sections/cta-final").then((m) => m.CtaFinal));
 const Footer = dynamic(() => import("@/components/sections/footer").then((m) => m.Footer));
@@ -32,7 +31,6 @@ export default function Home() {
         <Solucoes />
         <CasoReal />
         <Beneficios />
-        <Provas />
         <Faq />
         <CtaFinal />
       </main>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, FormEvent } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -99,11 +101,40 @@ export function DiagnosticoForm() {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-md border border-primary/30 p-10 text-center sm:p-16"
       >
+        <div className="relative mx-auto mb-6 h-20 w-20">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 14 }}
+            className="relative h-20 w-20 overflow-hidden rounded-full border border-primary/30"
+          >
+            <Image
+              src="/images/tiago-vaz-lg.jpg"
+              alt="Tiago Vaz"
+              fill
+              sizes="80px"
+              className="object-cover"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 260, damping: 16 }}
+            className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-primary"
+          >
+            <Check className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
+          </motion.div>
+        </div>
+
         <h3 className="mb-4 font-display text-2xl">Obrigado, {firstName}.</h3>
         <p className="mx-auto max-w-[480px] text-foreground/65">
-          Recebi seu pedido de Diagnóstico Estratégico para a <strong className="text-foreground">{data.empresa}</strong>.
-          Vou analisar com calma o desafio comercial que você compartilhou e retorno em breve pelo WhatsApp
-          ou e-mail informado para alinharmos os próximos passos.
+          Recebi seu pedido de Diagnóstico Estratégico para a{" "}
+          <strong className="text-foreground">{data.empresa}</strong>. Vou analisar com calma o
+          desafio comercial que você compartilhou.
+        </p>
+        <p className="mx-auto mt-3 max-w-[480px] font-semibold text-foreground">
+          Em breve entraremos em contato pelo WhatsApp ou e-mail informado para alinharmos os
+          próximos passos.
         </p>
         <p className="mt-6 font-display text-lg italic text-primary">
           Transformando dados em decisões. Transformando decisões em crescimento previsível.

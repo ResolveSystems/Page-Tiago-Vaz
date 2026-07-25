@@ -23,11 +23,12 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data:",
+              "img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com",
               "font-src 'self' data:", // fontes são self-hosted pelo next/font, sem CDN externo
-              "connect-src 'self'",
+              "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com",
+              "frame-src https://www.googletagmanager.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
