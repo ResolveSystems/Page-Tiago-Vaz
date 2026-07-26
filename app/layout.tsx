@@ -28,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const SITE_URL = "https://tiagovaz.com.br";
+const SITE_URL = "https://tiagovaz.online";
 const GTM_ID = "GTM-MM6JQFVK";
 
 export const metadata: Metadata = {

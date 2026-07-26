@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/api/",
     },
-    sitemap: "https://tiagovaz.com.br/sitemap.xml",
+    sitemap: "https://tiagovaz.online/sitemap.xml",
   };
 }

@@ -6,8 +6,8 @@ import { appendLeadToCsv } from "@/lib/csv-storage";
 export const runtime = "nodejs";
 
 const ALLOWED_ORIGINS = [
-  "https://tiagovaz.com.br",
-  "https://www.tiagovaz.com.br",
+  "https://tiagovaz.online",
+  "https://www.tiagovaz.online",
   process.env.NODE_ENV === "development" ? "http://localhost:3000" : "",
 ].filter(Boolean);
 

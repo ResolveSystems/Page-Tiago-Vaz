@@ -35,7 +35,7 @@ export default function PoliticaDePrivacidade() {
           <section>
             <h2 className="mb-3 font-display text-xl text-foreground">1. Quem é o responsável pelos dados</h2>
             <p>
-              Esta política se aplica ao site tiagovaz.com.br, de responsabilidade de Tiago Emídio
+              Esta política se aplica ao site tiagovaz.online, de responsabilidade de Tiago Emídio
               Pieretti Vaz ("Tiago Vaz", "nós"). Dúvidas sobre esta política ou sobre o tratamento dos
               seus dados podem ser enviadas para{" "}
               <a href="mailto:tiago@tiagovaz.com.br" className="text-primary hover:underline">
