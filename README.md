@@ -18,31 +18,70 @@ npm run build
 npm run start
 ```
 
-## Formulário de Diagnóstico → CSV local
+## Planilha do Google (armazenamento dos leads)
 
-Cada envio do formulário é validado, sanitizado e gravado como uma linha em
-`data/leads.csv`, na raiz do projeto (`lib/csv-storage.ts`). O arquivo é criado
-automaticamente no primeiro envio, com cabeçalho:
+Cada envio do formulário é validado, sanitizado e gravado como uma linha em uma Planilha Google
+de sua escolha (`lib/google-sheets.ts`), usando a API oficial do Google via uma *service account*
+(conta de serviço). Isso funciona normalmente na Vercel (ao contrário de gravar em CSV local, que
+não é confiável em ambientes serverless).
+
+### Passo a passo para configurar
+
+**1. Criar a planilha**
+
+Crie uma planilha nova no Google Sheets. Renomeie a primeira aba para `Leads` (ou o nome que
+preferir — só precisa bater com a variável `GOOGLE_SHEETS_TAB_NAME`). Na primeira linha, adicione
+o cabeçalho, exatamente nesta ordem:
 
 ```
-data_hora,nome,empresa,segmento,whatsapp,email,funcionarios,desafio,objetivo
+data_hora | nome | empresa | segmento | whatsapp | email | funcionarios | desafio | objetivo | consentimento_lgpd
 ```
 
-Para abrir os leads, basta abrir `data/leads.csv` no Excel, Google Sheets ou
-qualquer editor de planilhas.
+**2. Criar a Service Account no Google Cloud**
 
-- A pasta `data/` está no `.gitignore` — os leads (dados pessoais) nunca vão para
-  o controle de versão.
-- Depois do envio, a pessoa vê uma mensagem de agradecimento na própria página
-  (não há envio de e-mail de confirmação nesta versão).
+1. Acesse [console.cloud.google.com](https://console.cloud.google.com/) e crie um projeto (ou
+   use um existente).
+2. Vá em **APIs e Serviços → Biblioteca**, busque por "Google Sheets API" e clique em **Ativar**.
+3. Vá em **APIs e Serviços → Credenciais → Criar Credenciais → Conta de serviço**.
+4. Dê um nome (ex: `tiagovaz-leads`) e conclua a criação (não precisa atribuir papéis/roles de
+   projeto para isso funcionar).
+5. Clique na service account criada → aba **Chaves** → **Adicionar chave → Criar nova chave →
+   JSON**. Um arquivo `.json` será baixado — **guarde-o com segurança e nunca o compartilhe ou
+   suba para o Git**.
 
-**⚠️ Limitação importante para escolher onde hospedar**: gravar em CSV depende de
-um sistema de arquivos persistente. Funciona bem em hospedagem tradicional (VPS,
-servidor próprio, Docker, Railway, Render). **Não funciona de forma confiável na
-Vercel** (e em serverless em geral) — lá o disco é efêmero e cada requisição pode
-cair numa instância diferente, sem enxergar o arquivo escrito por outra. Se for
-hospedar na Vercel, troque `lib/csv-storage.ts` por um banco de dados (Postgres,
-Supabase, Google Sheets via API etc.) antes de ir pra produção.
+**3. Compartilhar a planilha com a Service Account**
+
+Abra o arquivo `.json` baixado e copie o valor do campo `"client_email"` (algo como
+`tiagovaz-leads@seu-projeto.iam.gserviceaccount.com`). Na sua Planilha Google, clique em
+**Compartilhar** e adicione esse e-mail como **Editor**. Sem esse passo, a API retorna erro de
+permissão.
+
+**4. Configurar as variáveis de ambiente**
+
+Do mesmo arquivo `.json`, você vai usar dois campos:
+
+| Variável | De onde vem |
+|---|---|
+| `GOOGLE_SHEETS_CLIENT_EMAIL` | campo `client_email` do JSON |
+| `GOOGLE_SHEETS_PRIVATE_KEY` | campo `private_key` do JSON (cole o valor inteiro, incluindo `-----BEGIN PRIVATE KEY-----` e `-----END PRIVATE KEY-----`) |
+| `GOOGLE_SHEETS_SPREADSHEET_ID` | está na URL da planilha: `docs.google.com/spreadsheets/d/`**`ESTE_TRECHO`**`/edit` |
+| `GOOGLE_SHEETS_TAB_NAME` | opcional — nome da aba, padrão `Leads` |
+
+- **Localmente**: copie `.env.example` para `.env.local` e preencha.
+- **Na Vercel**: vá em *Project Settings → Environment Variables* e adicione as 3-4 variáveis
+  acima para o ambiente de **Production** (e Preview, se quiser testar por lá também). A Vercel
+  aceita colar o valor de `GOOGLE_SHEETS_PRIVATE_KEY` com quebras de linha reais — não precisa
+  escapar manualmente como `\n`.
+
+**⚠️ Nunca cole sua chave privada (`private_key`) diretamente numa conversa de chat/IA, e-mail ou
+qualquer lugar fora do gerenciador de variáveis de ambiente da sua hospedagem** — é equivalente a
+uma senha com acesso à planilha.
+
+- Depois do envio, a pessoa vê uma mensagem de agradecimento na própria página (não há envio de
+  e-mail de confirmação nesta versão).
+- Proteção contra "Sheets injection": a gravação usa `valueInputOption: "RAW"`, que insere os
+  valores exatamente como estão, sem o Google Sheets tentar interpretá-los como fórmula — isso
+  neutraliza por completo o risco de alguém digitar algo como `=CMD(...)` num campo do formulário.
 
 ## Card de compartilhamento (WhatsApp / redes sociais)
 
@@ -123,7 +162,7 @@ Meça sempre contra o **build de produção** (`npm run build && npm run start`)
   (marcados como `[a definir]` no texto) e a lista de ferramentas de terceiros.
 - O formulário agora tem um **checkbox de consentimento obrigatório**, validado tanto no
   navegador quanto no servidor (`lib/validation.ts`) — sem marcar, o envio não passa.
-- Cada lead gravado em `data/leads.csv` inclui uma coluna `consentimento_lgpd` como registro de
+- Cada lead gravado na Planilha Google inclui uma coluna `consentimento_lgpd` como registro de
   prova de que o consentimento foi dado naquele envio.
 - Link para a política adicionado no rodapé do site.
 
@@ -145,16 +184,15 @@ colapsam para 1–2 colunas em telas pequenas.
 ```
 app/
   layout.tsx, page.tsx, globals.css, robots.ts, sitemap.ts
-  api/diagnostico/route.ts     → endpoint do formulário (validação + segurança + grava CSV)
+  api/diagnostico/route.ts     → endpoint do formulário (validação + segurança + grava na planilha)
 components/
   ui/                          → Button, Input, Textarea, Select, Accordion, Label (shadcn/ui)
   sections/                    → cada seção da página
   nav.tsx, theme-*.tsx, whatsapp-float.tsx, motion-reveal.tsx
 lib/
   utils.ts, validation.ts, rate-limit.ts
-  csv-storage.ts               → grava cada lead em data/leads.csv
+  google-sheets.ts             → grava cada lead na Planilha Google (Sheets API)
 public/images/                 → sua foto já otimizada
-data/                          → criado automaticamente no primeiro envio (leads.csv)
 ```
 
 ## Pendências conhecidas
@@ -165,5 +203,6 @@ data/                          → criado automaticamente no primeiro envio (lea
 - [ ] Seção de depoimentos ("Provas") foi removida até você ter depoimentos reais — o componente
       `components/sections/provas.tsx` foi apagado; quando tiver depoimentos verdadeiros, é só
       recriar a seção e voltar a importá-la em `app/page.tsx`.
-- [ ] Se for hospedar na Vercel (ou outro serverless), trocar `lib/csv-storage.ts` por um banco
-      de dados antes de ir pra produção (ver aviso acima).
+- [ ] Configurar a Service Account do Google Sheets e as variáveis de ambiente na Vercel (ver
+      seção "Planilha do Google" acima) — sem isso, o formulário continua mostrando "obrigado"
+      normalmente, mas os leads não são registrados em lugar nenhum.

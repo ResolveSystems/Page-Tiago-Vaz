@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { diagnosticoSchema, sanitizeText } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { appendLeadToCsv } from "@/lib/csv-storage";
+import { appendLeadToSheet } from "@/lib/google-sheets";
 
 export const runtime = "nodejs";
 
@@ -63,15 +63,15 @@ export async function POST(req: NextRequest) {
     objetivo: sanitizeText(parsedForm.data.objetivo ?? ""),
   };
 
-  // 6) Grava o lead em data/leads.csv (ver lib/csv-storage.ts para detalhes/limitações)
+  // 6) Grava o lead na Planilha Google (ver lib/google-sheets.ts / README para setup)
   try {
-    await appendLeadToCsv({
+    await appendLeadToSheet({
       data_hora: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
       ...clean,
       consentimento_lgpd: "sim",
     });
   } catch (err) {
-    console.error("[diagnostico] falha ao gravar lead no CSV:", err);
+    console.error("[diagnostico] falha ao gravar lead na planilha:", err);
     console.log("[diagnostico] lead recebido (fallback, não gravado):", clean);
     return NextResponse.json(
       { ok: false, error: "Recebemos seus dados, mas houve uma falha ao registrá-los. Tente novamente em instantes." },
