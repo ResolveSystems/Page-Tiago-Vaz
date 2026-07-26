@@ -18,11 +18,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Tema sempre começa em dark por padrão — só muda para claro se o usuário
+    // já tiver escolhido isso explicitamente antes (nunca por preferência do
+    // sistema operacional).
     const saved = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
     if (saved === "light" || saved === "dark") {
       setTheme(saved);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      setTheme("light");
     }
     setMounted(true);
   }, []);

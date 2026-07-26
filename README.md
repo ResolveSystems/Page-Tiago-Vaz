@@ -115,10 +115,25 @@ O endpoint `/api/diagnostico` aplica, em camadas:
 
 Meça sempre contra o **build de produção** (`npm run build && npm run start`), nunca `npm run dev`.
 
+## Política de Privacidade + consentimento (LGPD)
+
+- `app/politica-de-privacidade/page.tsx` — **é um rascunho**, redigido para orientar o que
+  costuma constar em uma política compatível com a LGPD. Não é aconselhamento jurídico; peça
+  para um advogado revisar antes de publicar de vez, principalmente os prazos de retenção
+  (marcados como `[a definir]` no texto) e a lista de ferramentas de terceiros.
+- O formulário agora tem um **checkbox de consentimento obrigatório**, validado tanto no
+  navegador quanto no servidor (`lib/validation.ts`) — sem marcar, o envio não passa.
+- Cada lead gravado em `data/leads.csv` inclui uma coluna `consentimento_lgpd` como registro de
+  prova de que o consentimento foi dado naquele envio.
+- Link para a política adicionado no rodapé do site.
+
 ## Tema claro/escuro
 
 Via classe `.light` na tag `<html>` + variáveis CSS (`app/globals.css`), com script inline no
 `<head>` (`app/layout.tsx`) que aplica o tema antes da hidratação (evita flash de tema errado).
+**O site sempre carrega no tema escuro por padrão** — a preferência de tema do sistema
+operacional do visitante é ignorada de propósito; só muda para claro se a pessoa clicar no
+botão de alternância (e a escolha fica salva no `localStorage` para as próximas visitas).
 
 ## Responsividade
 

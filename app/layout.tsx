@@ -167,7 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('tv-theme');if(t==='light'||(!t&&window.matchMedia('(prefers-color-scheme: light)').matches)){document.documentElement.classList.add('light');}}catch(e){}})();`,
+            __html: `(function(){try{if(localStorage.getItem('tv-theme')==='light'){document.documentElement.classList.add('light');}}catch(e){}})();`,
           }}
         />
         <script
@@ -183,6 +183,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-body antialiased">
         <GoogleTagManager gtmId={GTM_ID} />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+        >
+          Pular para o conteúdo
+        </a>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

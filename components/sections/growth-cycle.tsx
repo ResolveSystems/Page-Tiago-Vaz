@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 
 const STAGES = ["Dados", "Inteligência", "Decisões", "Aprendizado", "Crescimento"];
 const RADIUS = 160;
@@ -10,16 +10,22 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function GrowthCycle() {
   const [active, setActive] = useState(0);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  // margin negativa: só considera "em foco" quando realmente visível na tela,
+  // evitando o setInterval rodar (e gastar bateria/CPU à toa) com o usuário
+  // lendo outra parte da página.
+  const inView = useInView(wrapperRef, { margin: "-10% 0px -10% 0px" });
 
   useEffect(() => {
+    if (!inView) return;
     const id = setInterval(() => setActive((prev) => (prev + 1) % STAGES.length), 1700);
     return () => clearInterval(id);
-  }, []);
+  }, [inView]);
 
   const progress = (active + 1) / STAGES.length;
 
   return (
-    <div className="flex flex-col items-center">
+    <div ref={wrapperRef} className="flex flex-col items-center">
       <div className="relative aspect-square w-full max-w-[420px] rounded-full border border-border/10 bg-[radial-gradient(circle_at_50%_50%,rgb(var(--card))_0%,rgb(var(--background))_72%)]">
         <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full">
           <defs>

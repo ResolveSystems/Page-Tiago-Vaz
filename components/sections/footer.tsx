@@ -91,9 +91,14 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col-reverse items-center justify-between gap-6 border-t border-border/10 pt-8 sm:flex-row">
-          <p className="text-[0.8rem] text-foreground/40">
-            © {new Date().getFullYear()} Tiago Vaz. Inteligência empresarial, dados e IA aplicada aos
-            negócios.
+          <p className="flex flex-wrap items-center gap-x-2 text-[0.8rem] text-foreground/40">
+            <span>
+              © {new Date().getFullYear()} Tiago Vaz. Inteligência empresarial, dados e IA aplicada aos
+              negócios.
+            </span>
+            <Link href="/politica-de-privacidade" className="underline decoration-foreground/20 hover:text-primary">
+              Política de Privacidade
+            </Link>
           </p>
           <a
             href="#top"

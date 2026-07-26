@@ -2,12 +2,14 @@
 
 import { useState, useRef, FormEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { diagnosticoSchema } from "@/lib/validation";
 
@@ -21,6 +23,7 @@ type FormState = {
   desafio: string;
   objetivo: string;
   website: string; // honeypot
+  consentimento: boolean;
 };
 
 const INITIAL_STATE: FormState = {
@@ -33,7 +36,31 @@ const INITIAL_STATE: FormState = {
   desafio: "",
   objetivo: "",
   website: "",
+  consentimento: false,
 };
+
+declare global {
+  interface Window {
+    dataLayer?: Record<string, unknown>[];
+  }
+}
+
+/**
+ * Dispara o evento de conversão no dataLayer do GTM quando o diagnóstico é
+ * concluído. IMPORTANTE: nunca envie nome, e-mail, WhatsApp ou qualquer outro
+ * dado pessoal (PII) para o dataLayer/GA4 — é uma violação dos Termos de
+ * Serviço do Google Analytics. Por isso só vão segmento e faixa de
+ * funcionários, que descrevem o lead sem identificá-lo.
+ */
+function pushConversionEvent(segmento: string, funcionarios: string) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: "diagnostico_submit",
+    lead_segmento: segmento,
+    lead_funcionarios: funcionarios,
+  });
+}
 
 export function DiagnosticoForm() {
   const [data, setData] = useState<FormState>(INITIAL_STATE);
@@ -42,7 +69,7 @@ export function DiagnosticoForm() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const mountedAt = useRef(Date.now()); // usado para detectar envio "rápido demais" (bot)
 
-  function update<K extends keyof FormState>(key: K, value: string) {
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setData((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
@@ -93,6 +120,7 @@ export function DiagnosticoForm() {
     } catch (err) {
       console.error("[diagnostico] falha de rede, mas exibindo sucesso ao usuário:", err);
     } finally {
+      pushConversionEvent(data.segmento, data.funcionarios);
       setStatus("success");
     }
   }
@@ -249,6 +277,29 @@ export function DiagnosticoForm() {
       <div className="sm:col-span-2">
         <Label htmlFor="objetivo">Objetivo com o diagnóstico</Label>
         <Textarea id="objetivo" value={data.objetivo} onChange={(e) => update("objetivo", e.target.value)} />
+      </div>
+
+      <div className="sm:col-span-2 flex items-start gap-3 pt-1">
+        <Checkbox
+          id="consentimento"
+          invalid={!!errors.consentimento}
+          checked={data.consentimento}
+          onCheckedChange={(checked) => update("consentimento", checked === true)}
+          className="mt-0.5"
+        />
+        <div>
+          <Label
+            htmlFor="consentimento"
+            className="mb-0 cursor-pointer font-body text-[0.85rem] normal-case leading-relaxed tracking-normal text-foreground/70"
+          >
+            Li e concordo com a{" "}
+            <Link href="/politica-de-privacidade" target="_blank" className="text-primary hover:underline">
+              Política de Privacidade
+            </Link>
+            , e autorizo o uso dos meus dados para retorno do Diagnóstico Estratégico.
+          </Label>
+          {errors.consentimento && <p className="mt-1.5 text-[0.76rem] text-red-300">{errors.consentimento}</p>}
+        </div>
       </div>
 
       <div className="sm:col-span-2 mt-2.5">

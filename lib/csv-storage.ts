@@ -30,13 +30,21 @@ const COLUMNS = [
   "funcionarios",
   "desafio",
   "objetivo",
+  "consentimento_lgpd",
 ] as const;
 
 export type LeadRow = Record<(typeof COLUMNS)[number], string>;
 
 function csvEscape(value: string): string {
-  const needsQuoting = /[",\n\r]/.test(value);
-  const escaped = value.replace(/"/g, '""');
+  // Proteção contra "CSV injection": se o valor começar com =, +, -, @ (ou tab/CR),
+  // o Excel/Google Sheets pode interpretá-lo como fórmula ao abrir o arquivo — um
+  // vetor de ataque conhecido (OWASP "CSV Injection"). Prefixamos com um apóstrofo
+  // para forçar interpretação como texto puro, neutralizando a fórmula.
+  const isFormulaLike = /^[=+\-@\t\r]/.test(value);
+  const safeValue = isFormulaLike ? `'${value}` : value;
+
+  const needsQuoting = /[",\n\r]/.test(safeValue);
+  const escaped = safeValue.replace(/"/g, '""');
   return needsQuoting ? `"${escaped}"` : escaped;
 }
 

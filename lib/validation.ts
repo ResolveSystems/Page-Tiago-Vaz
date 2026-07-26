@@ -32,6 +32,10 @@ export const diagnosticoSchema = z.object({
   // denunciaria a armadilha. A detecção de fato acontece depois, em app/api/diagnostico/route.ts,
   // que responde como se o envio tivesse dado certo (sem revelar que foi bloqueado).
   website: z.string().max(200).optional().or(z.literal("")),
+  // Consentimento com a Política de Privacidade — obrigatório (base legal do tratamento, ver LGPD)
+  consentimento: z.boolean().refine((v) => v === true, {
+    message: "É necessário aceitar a Política de Privacidade para continuar.",
+  }),
 });
 
 export type DiagnosticoInput = z.infer<typeof diagnosticoSchema>;

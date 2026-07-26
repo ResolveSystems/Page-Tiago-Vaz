@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
     await appendLeadToCsv({
       data_hora: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
       ...clean,
+      consentimento_lgpd: "sim",
     });
   } catch (err) {
     console.error("[diagnostico] falha ao gravar lead no CSV:", err);
