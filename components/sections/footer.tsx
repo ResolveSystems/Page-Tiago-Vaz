@@ -46,11 +46,11 @@ export function Footer() {
             <ul className="mt-5 space-y-3.5">
               <li>
                 <a
-                  href="mailto:tiago@tiagovaz.online"
+                  href="mailto:tiago@tiagovaz.com.br"
                   className="flex items-center gap-2.5 text-[0.92rem] text-foreground/65 hover:text-primary"
                 >
                   <Mail className="h-4 w-4" strokeWidth={1.8} />
-                  tiago@tiagovaz.online
+                  tiago@tiagovaz.com.br
                 </a>
               </li>
               <li>
@@ -61,7 +61,7 @@ export function Footer() {
                   className="flex items-center gap-2.5 text-[0.92rem] text-foreground/65 hover:text-primary"
                 >
                   <Instagram className="h-4 w-4" strokeWidth={1.8} />
-                  Instagram
+                  @tiago_vaz_br
                 </a>
               </li>
               <li>
