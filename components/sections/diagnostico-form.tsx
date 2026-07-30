@@ -39,23 +39,24 @@ const INITIAL_STATE: FormState = {
   consentimento: false,
 };
 
-declare global {
-  interface Window {
-    dataLayer?: Record<string, unknown>[];
-  }
-}
-
 /**
  * Dispara o evento de conversão no dataLayer do GTM quando o diagnóstico é
  * concluído. IMPORTANTE: nunca envie nome, e-mail, WhatsApp ou qualquer outro
  * dado pessoal (PII) para o dataLayer/GA4 — é uma violação dos Termos de
  * Serviço do Google Analytics. Por isso só vão segmento e faixa de
  * funcionários, que descrevem o lead sem identificá-lo.
+ *
+ * Não redeclaramos `Window.dataLayer` globalmente aqui de propósito — o pacote
+ * @next/third-parties (usado para o GTM em app/layout.tsx) já declara esse
+ * tipo globalmente, e duas declarações do mesmo campo com tipos diferentes
+ * quebram o build ("Subsequent property declarations must have the same
+ * type"). Em vez disso, fazemos um cast local só pra este uso.
  */
 function pushConversionEvent(segmento: string, funcionarios: string) {
   if (typeof window === "undefined") return;
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
+  const w = window as unknown as { dataLayer?: Record<string, unknown>[] };
+  w.dataLayer = w.dataLayer || [];
+  w.dataLayer.push({
     event: "diagnostico_submit",
     lead_segmento: segmento,
     lead_funcionarios: funcionarios,
